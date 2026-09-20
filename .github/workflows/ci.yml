@@ -29,10 +29,5 @@ jobs:
       - name: Build do projeto
         run: npm run build
 
-      - name: Rodar testes Cypress
-        uses: cypress-io/github-action@v6
-        with:
-          start: npm run dev
-          wait-on: 'http://localhost:5173'
-          wait-on-timeout: 60
-          browser: chrome
+      - name: Rodar testes unitários
+        run: npx vitest run

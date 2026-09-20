@@ -6,10 +6,8 @@ dist/
 .idea/
 trihbau.db
 
-# Playwright
 /test-results/
-/playwright-report/
 /blob-report/
-/playwright/.cache/
-/playwright/.auth/
+/playwright-report/
+/test-results/
 /coverage/
