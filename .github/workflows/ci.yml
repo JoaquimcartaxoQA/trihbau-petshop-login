@@ -23,6 +23,9 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Instalar navegador do Playwright
+        run: npx playwright install --with-deps chromium
+
       - name: Verificar tipos (TypeScript)
         run: npx tsc --noEmit
 
@@ -31,3 +34,6 @@ jobs:
 
       - name: Rodar testes unitários
         run: npx vitest run
+
+      - name: Rodar testes E2E do Playwright
+        run: npm run test:e2e
