@@ -29,6 +29,15 @@ db.exec(`
   );
 `);
 
+const appointmentColumns = db.prepare("PRAGMA table_info(appointments)").all();
+const appointmentColumnNames = new Set(appointmentColumns.map((column) => column.name));
+
+if (!appointmentColumnNames.has("slot_start")) {
+  db.exec("ALTER TABLE appointments ADD COLUMN slot_start TEXT NOT NULL DEFAULT ''");
+}
+
+db.exec("CREATE INDEX IF NOT EXISTS appointments_date_index ON appointments(date)");
+
 const petColumns = db.prepare("PRAGMA table_info(pets)").all();
 const petColumnNames = new Set(petColumns.map((column) => column.name));
 

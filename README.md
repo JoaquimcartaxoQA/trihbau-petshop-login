@@ -197,6 +197,29 @@ Authorization: Bearer <token>
 
 Na Área do Tutor, cada pet cadastrado possui ações para editar ou excluir seus dados.
 
+### Fluxo de agendamento
+
+O botão `Agendar agora` e o CTA `Agende seu horario` exigem login antes de abrir o WhatsApp. Após um login existente, a mensagem inclui o nome do tutor e os nomes e raças dos pets cadastrados.
+
+Quando o tutor cria uma nova conta, ele permanece na Área do Tutor. Nessa tela existe o botão `Agendar pelo WhatsApp`, que usa os dados dos pets cadastrados. O acesso iniciado pelo botão `Área do Tutor` também abre normalmente a área, sem redirecionamento automático.
+
+O calendário permite agendar de segunda a sexta-feira, entre `08:00` e `19:30`, em intervalos de 1h30:
+
+- `08:00`, `09:30`, `11:00`, `12:30`, `14:00`, `15:30` e `17:00`: 4 vagas por horário.
+- `18:00` até `19:30`: 2 vagas.
+
+Cada vaga pode ser ocupada por apenas um pet. A disponibilidade é consultada no banco e a reserva é feita em uma transação, então uma vaga ocupada fica indisponível para todos os tutores.
+
+Endpoints de agendamento:
+
+```http
+GET /api/auth/appointments/availability?date=2026-09-25
+GET /api/auth/appointments
+POST /api/auth/appointments
+```
+
+O cadastro exige `petId`, `date`, `slotStart` e ao menos um serviço em `services`, além do token JWT do tutor. Os serviços disponíveis são `Banho`, `Tosa completa`, `Tosa higiênica`, `Limpeza de ouvidos`, `Corte de unhas` e `Hidratação premium`. `Tosa completa` e `Tosa higiênica` não podem ser selecionadas juntas.
+
 ## Testes
 
 Testes unitários:

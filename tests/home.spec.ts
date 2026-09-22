@@ -5,7 +5,7 @@ test("exibe a página inicial da TrihbAU", async ({ homePage }) => {
   await homePage.expectLoaded();
 });
 
-test("permite agendar um horario pelo WhatsApp", async ({ homePage }) => {
+test("exibe o botão de agendamento", async ({ homePage }) => {
   await homePage.goto();
-  await homePage.expectBookingLink();
+  await homePage.expectBookingButton();
 });

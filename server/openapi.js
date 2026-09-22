@@ -36,7 +36,9 @@ const openapi = {
         responses: {
           200: {
             description: "Tutor cadastrado",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" } } },
+            content: {
+              "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" } },
+            },
           },
           400: { description: "Campos obrigatórios ausentes" },
           409: { description: "E-mail já cadastrado" },
@@ -87,7 +89,9 @@ const openapi = {
         responses: {
           200: {
             description: "Login realizado",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" } } },
+            content: {
+              "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" } },
+            },
           },
           401: { description: "Credenciais inválidas" },
         },
@@ -101,7 +105,11 @@ const openapi = {
         responses: {
           200: {
             description: "Pets do tutor",
-            content: { "application/json": { schema: { type: "array", items: { $ref: "#/components/schemas/Pet" } } } },
+            content: {
+              "application/json": {
+                schema: { type: "array", items: { $ref: "#/components/schemas/Pet" } },
+              },
+            },
           },
           401: { description: "Token inválido ou ausente" },
         },
@@ -115,12 +123,21 @@ const openapi = {
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/PetRequest" },
-              example: { breed: "Golden Retriever", name: "Luna", age: 3, weight: 24.5, contactPhone: "85999999999" },
+              example: {
+                breed: "Golden Retriever",
+                name: "Luna",
+                age: 3,
+                weight: 24.5,
+                contactPhone: "85999999999",
+              },
             },
           },
         },
         responses: {
-          201: { description: "Pet cadastrado", content: { "application/json": { schema: { $ref: "#/components/schemas/Pet" } } } },
+          201: {
+            description: "Pet cadastrado",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Pet" } } },
+          },
           400: { description: "Dados inválidos" },
           401: { description: "Token inválido ou ausente" },
         },
@@ -135,7 +152,10 @@ const openapi = {
           content: { "application/json": { schema: { $ref: "#/components/schemas/PetRequest" } } },
         },
         responses: {
-          200: { description: "Pet atualizado", content: { "application/json": { schema: { $ref: "#/components/schemas/Pet" } } } },
+          200: {
+            description: "Pet atualizado",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Pet" } } },
+          },
           400: { description: "Dados inválidos" },
           401: { description: "Token inválido ou ausente" },
           404: { description: "Pet não encontrado" },
@@ -150,6 +170,102 @@ const openapi = {
           204: { description: "Pet excluído" },
           401: { description: "Token inválido ou ausente" },
           404: { description: "Pet não encontrado" },
+        },
+      },
+    },
+    "/api/auth/appointments/availability": {
+      get: {
+        tags: ["Auth"],
+        summary: "Lista as vagas de um dia útil",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "date", in: "query", required: true, schema: { type: "string", format: "date" } },
+        ],
+        responses: {
+          200: {
+            description: "Vagas por horário",
+            content: {
+              "application/json": {
+                schema: { type: "array", items: { $ref: "#/components/schemas/BookingSlot" } },
+              },
+            },
+          },
+          400: { description: "Data inválida" },
+          401: { description: "Token inválido ou ausente" },
+        },
+      },
+    },
+    "/api/auth/appointments": {
+      get: {
+        tags: ["Auth"],
+        summary: "Lista os agendamentos do tutor",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Agendamentos do tutor",
+            content: {
+              "application/json": {
+                schema: { type: "array", items: { $ref: "#/components/schemas/Appointment" } },
+              },
+            },
+          },
+          401: { description: "Token inválido ou ausente" },
+        },
+      },
+      post: {
+        tags: ["Auth"],
+        summary: "Reserva uma vaga para um pet",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: { $ref: "#/components/schemas/AppointmentRequest" } },
+          },
+        },
+        responses: {
+          201: { description: "Agendamento criado" },
+          400: { description: "Dados inválidos" },
+          401: { description: "Token inválido ou ausente" },
+          409: { description: "Horário sem vagas" },
+        },
+      },
+    },
+    "/api/auth/appointments/{id}": {
+      put: {
+        tags: ["Auth"],
+        summary: "Edita os serviços de um agendamento",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["services"],
+                properties: {
+                  services: { $ref: "#/components/schemas/AppointmentRequest/properties/services" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Agendamento atualizado" },
+          400: { description: "Serviços inválidos" },
+          401: { description: "Token inválido ou ausente" },
+          404: { description: "Agendamento não encontrado" },
+        },
+      },
+      delete: {
+        tags: ["Auth"],
+        summary: "Exclui um agendamento",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        responses: {
+          204: { description: "Agendamento excluído" },
+          401: { description: "Token inválido ou ausente" },
+          404: { description: "Agendamento não encontrado" },
         },
       },
     },
@@ -208,6 +324,53 @@ const openapi = {
         allOf: [
           { $ref: "#/components/schemas/PetRequest" },
           { type: "object", required: ["id"], properties: { id: { type: "integer", example: 1 } } },
+        ],
+      },
+      BookingSlot: {
+        type: "object",
+        properties: {
+          start: { type: "string", example: "08:00" },
+          capacity: { type: "integer", example: 4 },
+          booked: { type: "integer", example: 1 },
+          available: { type: "integer", example: 3 },
+        },
+      },
+      AppointmentRequest: {
+        type: "object",
+        required: ["petId", "date", "slotStart", "services"],
+        properties: {
+          petId: { type: "integer", example: 1 },
+          date: { type: "string", format: "date", example: "2026-09-25" },
+          slotStart: { type: "string", example: "08:00" },
+          services: {
+            type: "array",
+            minItems: 1,
+            uniqueItems: true,
+            items: {
+              type: "string",
+              enum: [
+                "Banho",
+                "Tosa completa",
+                "Tosa higiênica",
+                "Limpeza de ouvidos",
+                "Corte de unhas",
+                "Hidratação premium",
+              ],
+            },
+          },
+        },
+      },
+      Appointment: {
+        allOf: [
+          { $ref: "#/components/schemas/AppointmentRequest" },
+          {
+            type: "object",
+            properties: {
+              id: { type: "integer", example: 1 },
+              petName: { type: "string" },
+              petBreed: { type: "string" },
+            },
+          },
         ],
       },
     },
