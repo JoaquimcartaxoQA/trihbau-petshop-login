@@ -30,4 +30,24 @@ footer{padding:54px 5vw 28px;display:grid;grid-template-columns:1fr 1fr auto;ali
 .minha-area-placeholder{background:#f7f0fa;border-radius:10px;padding:16px;margin-bottom:20px}
 .minha-area-placeholder p{margin:0 0 4px}
 .auth-hint{color:#999;font-size:.85rem;margin-bottom:16px!important}
+.minha-area-card{max-width:620px}
+.pets-section{margin:24px 0}
+.pets-section h3{margin:0 0 16px;color:#6b1f8f;font-size:1.25rem}
+.pet-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.pet-form label{margin:0;font-size:.8rem}
+.pet-form label:last-of-type{grid-column:1/-1}
+.pet-form button{grid-column:1/-1;padding:13px;border:0;border-radius:8px;color:#fff;background:linear-gradient(135deg,#6b1f8f,#a3228f);font-weight:600;cursor:pointer}
+.pet-form button:disabled{opacity:.6;cursor:not-allowed}
+.pets-list{display:grid;gap:10px;margin-top:18px}
+.pet-item{display:grid;gap:4px;padding:14px;border:1px solid #eadcf0;border-radius:9px;background:#fff}
+.pet-item strong{color:#6b1f8f}
+.pet-item span,.pet-item small{color:#777;font-size:.82rem}
+.pet-item-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pet-actions{display:flex;gap:6px}
+.pet-action-button{width:32px;height:32px;display:grid;place-items:center;padding:0;border:1px solid #dfc9e7;border-radius:7px;color:#6b1f8f;background:#fff;cursor:pointer}
+.pet-action-button:hover{background:#f7f0fa}
+.pet-action-button--delete{color:#b4235d;border-color:#efc8d7}
+.pet-action-button--delete:hover{background:#fff0f4}
+.cancel-edit-button{margin:-8px 0 18px;padding:0;border:0;color:#a3228f;background:none;font-size:.85rem;text-decoration:underline;cursor:pointer}
+@media(max-width:520px){.pet-form{grid-template-columns:1fr}.pet-form label:last-of-type{grid-column:auto}.pet-form button{grid-column:auto}}
 .nav-cta--ghost{background:none;border:1px solid currentColor;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:inherit}

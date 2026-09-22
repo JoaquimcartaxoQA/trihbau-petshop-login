@@ -100,7 +100,7 @@ export default function App() {
     return <Register onSuccess={handleAuthSuccess} onGoToLogin={() => setAuthView("login")} />;
   }
   if (authView === "minha-area") {
-    return <MinhaArea name={tutorName} onLogout={handleLogout} />;
+    return <MinhaArea name={tutorName} token={localStorage.getItem("token") ?? ""} onLogout={handleLogout} />;
   }
   // ===== FIM DO NOVO =====
 
