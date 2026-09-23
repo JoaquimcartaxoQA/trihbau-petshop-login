@@ -234,6 +234,21 @@ Testes E2E:
 npm run test:e2e
 ```
 
+Teste de API com Java e REST Assured:
+
+Com o backend em execução em `http://localhost:3001`, execute:
+
+```bash
+npm run test:api-java
+```
+
+O teste em `api-tests/src/test/java/com/trihbau/api/LoginApiTest.java` cria um tutor temporário e valida o login com sucesso, incluindo status `200`, nome do tutor e token JWT.
+
+Requisitos do teste Java:
+
+- Java 21 ou superior
+- Maven 3.9 ou superior
+
 Listar os testes Playwright sem executá-los:
 
 ```bash

@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "server": "nodemon server/index.js",
     "reset-password": "node scripts/reset-user-password.js",
+    "test:api-java": "mvn -f api-tests/pom.xml test",
     "test:e2e": "playwright test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
