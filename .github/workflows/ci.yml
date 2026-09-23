@@ -17,8 +17,15 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.15.0'
-          cache: 'npm'
+          node-version: "24.15.0"
+          cache: "npm"
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
 
       - name: Instalar dependências
         run: npm ci
@@ -37,3 +44,11 @@ jobs:
 
       - name: Rodar testes E2E do Playwright
         run: npm run test:e2e
+
+      - name: Rodar teste de API REST Assured
+        run: |
+          npm run server > /tmp/trihbau-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          until curl --fail --silent http://localhost:3001/health > /dev/null; do sleep 1; done
+          npm run test:api-java
