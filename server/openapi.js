@@ -9,8 +9,39 @@ const openapi = {
   tags: [
     { name: "Health", description: "Status da API" },
     { name: "Auth", description: "Autenticação de tutores" },
+    { name: "Products", description: "Catálogo público de produtos" },
   ],
   paths: {
+    "/api/products": {
+      get: {
+        tags: ["Products"],
+        summary: "Lista os produtos ativos",
+        responses: {
+          200: {
+            description: "Produtos disponíveis",
+            content: {
+              "application/json": {
+                schema: { type: "array", items: { $ref: "#/components/schemas/Product" } },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/api/products/{id}": {
+      get: {
+        tags: ["Products"],
+        summary: "Busca um produto ativo",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+        responses: {
+          200: {
+            description: "Produto encontrado",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Product" } } },
+          },
+          404: { description: "Produto não encontrado" },
+        },
+      },
+    },
     "/health": {
       get: {
         tags: ["Health"],
@@ -325,6 +356,17 @@ const openapi = {
           { $ref: "#/components/schemas/PetRequest" },
           { type: "object", required: ["id"], properties: { id: { type: "integer", example: 1 } } },
         ],
+      },
+      Product: {
+        type: "object",
+        required: ["id", "name", "description", "priceCents", "image"],
+        properties: {
+          id: { type: "integer", example: 1 },
+          name: { type: "string", example: "Shampoo Premium" },
+          description: { type: "string", example: "Cuidado delicado para uma pelagem macia." },
+          priceCents: { type: "integer", example: 9359, description: "Valor em centavos" },
+          image: { type: "string", example: "shampoo" },
+        },
       },
       BookingSlot: {
         type: "object",

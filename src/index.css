@@ -82,3 +82,29 @@ footer{padding:54px 5vw 28px;display:grid;grid-template-columns:1fr 1fr auto;ali
 @media(max-width:520px){.booking-slots{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.pet-form{grid-template-columns:1fr}.pet-form label:last-of-type{grid-column:auto}.pet-form button{grid-column:auto}}
 .nav-cta--ghost{background:none;border:1px solid currentColor;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:inherit}
+.desktop-nav button{padding:0;border:0;color:inherit;background:none;font:inherit;opacity:.76;cursor:pointer}
+.desktop-nav button:hover{opacity:1}
+.mobile-nav button{padding:0;border:0;color:#2b1830;background:none;text-align:left;font:inherit;cursor:pointer}
+.products-page{min-height:100vh;color:#24182a;background:#f8f4f9}
+.products-header{display:grid;grid-template-columns:auto minmax(0,760px) auto;align-items:center;gap:32px;padding:70px max(5vw,24px) 62px;color:#fff;background:linear-gradient(120deg,#1a0d1e,#702283)}
+.products-back-button{display:inline-flex;align-items:center;gap:8px;padding:11px 15px;border:1px solid #ffffff59;border-radius:999px;color:#fff;background:transparent;cursor:pointer}
+.products-header .eyebrow{margin:0 0 13px;color:#e7b5d7}
+.products-header h1{margin:0;font-family:"Playfair Display",serif;font-size:clamp(42px,6vw,74px);font-weight:500;line-height:1.02}
+.products-header>div>p:last-child{margin:17px 0 0;color:#ffffffb8;font-size:15px}
+.products-header-icon{justify-self:end;color:#e8c58e}
+.products-content{max-width:1180px;margin:auto;padding:66px max(5vw,24px) 100px}
+.products-error{padding:14px;border-radius:8px;color:#9c1f4e;background:#fff0f4}
+.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.product-card{display:flex;flex-direction:column;overflow:hidden;border:1px solid #eadfea;background:#fff;box-shadow:0 14px 35px #3510440d}
+.product-visual{display:grid;place-items:center;min-height:220px;color:#5d3569}
+.product-card-content{display:flex;flex:1;flex-direction:column;padding:22px}
+.product-category{margin:0 0 10px;color:#a3228f;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.product-card h2{margin:0;font-family:"Playfair Display",serif;font-size:25px;font-weight:500;line-height:1.1}
+.product-description{min-height:48px;margin:12px 0 24px;color:#817487;font-size:13px;line-height:1.6}
+.product-card-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto}
+.product-card-footer strong{color:#6b1f8f;font-size:18px}
+.product-card-footer button{display:inline-flex;align-items:center;gap:6px;padding:10px 13px;border:0;border-radius:999px;color:#fff;background:#8b2bc7;font-size:11px;font-weight:700;cursor:pointer}
+.product-card-footer button:hover{background:#a3228f}
+@media(max-width:1000px){.products-grid{grid-template-columns:repeat(2,1fr)}.products-header{grid-template-columns:auto 1fr auto}}
+@media(max-width:850px){.desktop-nav button{display:none}.products-header{grid-template-columns:auto 1fr}.products-header-icon{display:none}}
+@media(max-width:520px){.products-grid{grid-template-columns:1fr}.products-header{grid-template-columns:1fr;gap:22px;padding-top:35px}.products-header h1{font-size:47px}.products-back-button{justify-self:start}.product-visual{min-height:180px}}

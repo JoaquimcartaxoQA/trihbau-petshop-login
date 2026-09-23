@@ -27,7 +27,34 @@ db.exec(`
     date TEXT NOT NULL,
     FOREIGN KEY (pet_id) REFERENCES pets(id)
   );
+
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
+    image TEXT,
+    active INTEGER NOT NULL DEFAULT 1
+  );
 `);
+
+const products = [
+  ["Shampoo Premium", "Cuidado delicado para uma pelagem macia e perfumada.", 9359, "shampoo"],
+  ["Saco de Ração 20kg", "Nutrição completa para manter seu pet saudável.", 38999, "racao"],
+  ["Mordedor Reforçado", "Diversão resistente para os momentos de brincadeira.", 8000, "mordedor"],
+  ["Guia Unificada", "Praticidade e segurança para os passeios diários.", 12000, "guia"],
+];
+
+const insertProduct = db.prepare(`
+  INSERT INTO products (name, description, price_cents, image)
+  VALUES (?, ?, ?, ?)
+`);
+
+const productCount = db.prepare("SELECT COUNT(*) AS total FROM products").get().total;
+if (productCount === 0) {
+  const seedProducts = db.transaction(() => products.forEach((product) => insertProduct.run(...product)));
+  seedProducts();
+}
 
 const appointmentColumns = db.prepare("PRAGMA table_info(appointments)").all();
 const appointmentColumnNames = new Set(appointmentColumns.map((column) => column.name));

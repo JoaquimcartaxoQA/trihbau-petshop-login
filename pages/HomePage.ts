@@ -19,6 +19,10 @@ export class HomePage {
     await expect(this.page.getByRole("button", { name: /agende seu horario/i })).toBeVisible();
   }
 
+  async openProducts() {
+    await this.page.getByRole("button", { name: "Produtos" }).click();
+  }
+
   async openTutorArea() {
     await this.page.getByRole("button", { name: "Área do Tutor" }).click();
   }

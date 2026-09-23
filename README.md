@@ -78,6 +78,17 @@ Com o backend em execução, acesse:
 
 ## API
 
+### Produtos
+
+A primeira fase da loja está disponível em `http://localhost:5173/produtos` e lista os quatro produtos iniciais. O catálogo público pode ser consultado pela API:
+
+```http
+GET /api/products
+GET /api/products/:id
+```
+
+Os preços são armazenados em centavos no banco (`priceCents`) e exibidos no frontend no formato brasileiro. O carrinho e o checkout serão adicionados nas próximas fases.
+
 ### Health check
 
 ```http
