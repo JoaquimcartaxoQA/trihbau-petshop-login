@@ -242,7 +242,12 @@ Com o backend em execução em `http://localhost:3001`, execute:
 npm run test:api-java
 ```
 
-O teste em `api-tests/src/test/java/com/trihbau/api/LoginApiTest.java` cria um tutor temporário e valida o login com sucesso, incluindo status `200`, nome do tutor e token JWT.
+Os testes em `api-tests/src/test/java/com/trihbau/api/` cobrem:
+
+- Login com sucesso, incluindo status `200`, nome do tutor e token JWT.
+- Cadastro de um pet e agendamento de serviços para uma vaga disponível.
+- Retorno do agendamento com pet, raça, data, horário e serviços concatenados, dados usados pelo botão `Agendar pelo WhatsApp`.
+- Rejeição da seleção simultânea de `Tosa completa` e `Tosa higiênica`.
 
 Requisitos do teste Java:
 
