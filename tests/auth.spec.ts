@@ -21,14 +21,44 @@ test("permite cadastrar um tutor e sair da área", async ({
 }) => {
   const user = createTestUser();
 
-  await homePage.goto();
-  await homePage.openTutorArea();
-  await loginPage.openRegister();
-  await registerPage.expectLoaded();
-  await registerPage.register(user);
-  await minhaAreaPage.expectLoaded(user.name);
-  await minhaAreaPage.logout();
-  await homePage.expectLoaded();
+  try {
+    await homePage.goto();
+    await homePage.openTutorArea();
+    await loginPage.openRegister();
+    await registerPage.expectLoaded();
+    await registerPage.register(user);
+    await minhaAreaPage.expectLoaded(user.name);
+    await minhaAreaPage.logout();
+    await homePage.expectLoaded();
+  } finally {
+    removeTestUser(user.email);
+  }
+});
+
+test("permite entrar na área do tutor com credenciais válidas", async ({
+  homePage,
+  loginPage,
+  registerPage,
+  minhaAreaPage,
+}) => {
+  const user = createTestUser();
+
+  try {
+    await homePage.goto();
+    await homePage.openTutorArea();
+    await loginPage.openRegister();
+    await registerPage.register(user);
+    await minhaAreaPage.expectLoaded(user.name);
+    await minhaAreaPage.logout();
+    await homePage.expectLoaded();
+
+    await homePage.openTutorArea();
+    await loginPage.expectLoaded();
+    await loginPage.login(user);
+    await minhaAreaPage.expectLoaded(user.name);
+  } finally {
+    removeTestUser(user.email);
+  }
 });
 
 test("permite agendar um pet com serviços e bloqueia tosas incompatíveis", async ({
