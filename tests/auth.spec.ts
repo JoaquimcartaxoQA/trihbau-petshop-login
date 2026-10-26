@@ -1,6 +1,7 @@
 import { createTestUser } from "../data/users";
 import { test } from "../fixtures/test";
 import db from "../server/db";
+import { toLocalISO } from "../src/utils/dates";
 
 function removeTestUser(email: string) {
   const tutor = db.prepare("SELECT id FROM tutors WHERE email = ?").get(email) as
@@ -71,7 +72,7 @@ test("permite agendar um pet com serviços e bloqueia tosas incompatíveis", asy
   const date = new Date();
   date.setDate(date.getDate() + 1);
   while (date.getDay() === 0 || date.getDay() === 6) date.setDate(date.getDate() + 1);
-  const bookingDate = date.toISOString().slice(0, 10);
+  const bookingDate = toLocalISO(date);
 
   try {
     await homePage.goto();

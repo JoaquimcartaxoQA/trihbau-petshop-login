@@ -1,13 +1,7 @@
-import { ArrowLeft, Check, ShoppingBag } from "lucide-react";
+import { ArrowLeft, MessageCircle, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  priceCents: number;
-  image: string;
-}
+import { apiGet, type Product } from "../services/api";
+import { createProductWhatsAppUrl } from "../utils/whatsapp";
 
 interface ProductsProps {
   onBack: () => void;
@@ -24,18 +18,19 @@ const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL
 
 export default function Products({ onBack }: ProductsProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [addedProductId, setAddedProductId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadProducts() {
       try {
-        const response = await fetch("http://localhost:3001/api/products");
-        if (!response.ok) throw new Error("Não foi possível carregar os produtos.");
-        setProducts(await response.json());
+        setProducts(
+          await apiGet<Product[]>("/api/products", "Não foi possível carregar os produtos.", null),
+        );
       } catch (requestError) {
         setError(
-          requestError instanceof Error ? requestError.message : "Erro ao carregar produtos.",
+          requestError instanceof Error
+            ? requestError.message
+            : "Não foi possível carregar os produtos.",
         );
       }
     }
@@ -43,9 +38,8 @@ export default function Products({ onBack }: ProductsProps) {
     void loadProducts();
   }, []);
 
-  function addProduct(id: number) {
-    setAddedProductId(id);
-    window.setTimeout(() => setAddedProductId(null), 1800);
+  function buyProduct(product: Product) {
+    window.open(createProductWhatsAppUrl(product), "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -79,14 +73,12 @@ export default function Products({ onBack }: ProductsProps) {
                 <p className="product-description">{product.description}</p>
                 <div className="product-card-footer">
                   <strong>{money.format(product.priceCents / 100)}</strong>
-                  <button type="button" onClick={() => addProduct(product.id)}>
-                    {addedProductId === product.id ? (
-                      <>
-                        <Check size={16} /> Adicionado
-                      </>
-                    ) : (
-                      "Adicionar"
-                    )}
+                  <button
+                    type="button"
+                    title="Comprar pelo WhatsApp"
+                    onClick={() => buyProduct(product)}
+                  >
+                    <MessageCircle size={16} /> Comprar
                   </button>
                 </div>
               </div>

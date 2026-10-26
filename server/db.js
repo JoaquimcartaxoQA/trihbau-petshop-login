@@ -65,6 +65,9 @@ if (!appointmentColumnNames.has("slot_start")) {
 
 db.exec("CREATE INDEX IF NOT EXISTS appointments_date_index ON appointments(date)");
 
+// Limpeza única: agendamentos órfãos de pets já excluídos não devem consumir vagas.
+db.prepare("DELETE FROM appointments WHERE pet_id NOT IN (SELECT id FROM pets)").run();
+
 const petColumns = db.prepare("PRAGMA table_info(pets)").all();
 const petColumnNames = new Set(petColumns.map((column) => column.name));
 

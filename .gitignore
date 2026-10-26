@@ -11,3 +11,4 @@ trihbau.db
 /playwright-report/
 /test-results/
 /coverage/
+api-tests/target/

@@ -1,37 +1,15 @@
 import { useEffect, useState } from "react";
 import { MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { nextWeekdayISO } from "../utils/dates";
+import { apiGet, apiSend, type Appointment, type BookingSlot, type Pet } from "../services/api";
 
 interface MinhaAreaProps {
   name: string;
   token: string;
-  onSchedule: (appointment: Pick<Appointment, "date" | "slotStart" | "service" | "petName" | "petBreed">) => void;
+  onSchedule: (
+    appointment: Pick<Appointment, "date" | "slotStart" | "service" | "petName" | "petBreed">,
+  ) => void;
   onLogout: () => void;
-}
-
-interface Pet {
-  id: number;
-  breed: string;
-  name: string;
-  age: number;
-  weight: number;
-  contactPhone: string;
-}
-
-interface BookingSlot {
-  start: string;
-  capacity: number;
-  booked: number;
-  available: number;
-}
-
-interface Appointment {
-  id: number;
-  date: string;
-  slotStart: string;
-  service: string;
-  petId: number;
-  petName: string;
-  petBreed: string;
 }
 
 const bookingServices = [
@@ -45,12 +23,6 @@ const bookingServices = [
 
 const emptyPet = { breed: "", name: "", age: "", weight: "", contactPhone: "" };
 
-function getNextWeekday() {
-  const date = new Date();
-  while (date.getDay() === 0 || date.getDay() === 6) date.setDate(date.getDate() + 1);
-  return date.toISOString().slice(0, 10);
-}
-
 export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAreaProps) {
   const [pets, setPets] = useState<Pet[]>([]);
   const [pet, setPet] = useState(emptyPet);
@@ -60,7 +32,7 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
   const [editingPetId, setEditingPetId] = useState<number | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [bookingDate, setBookingDate] = useState(getNextWeekday);
+  const [bookingDate, setBookingDate] = useState(nextWeekdayISO);
   const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [selectedPetId, setSelectedPetId] = useState("");
@@ -72,11 +44,7 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
   useEffect(() => {
     async function loadPets() {
       try {
-        const response = await fetch("http://localhost:3001/api/auth/pets", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error("Não foi possível carregar os pets.");
-        setPets(await response.json());
+        setPets(await apiGet<Pet[]>("/api/auth/pets", "Não foi possível carregar os pets.", token));
       } catch (requestError) {
         setError(
           requestError instanceof Error ? requestError.message : "Erro ao carregar os pets.",
@@ -92,11 +60,13 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
   useEffect(() => {
     async function loadAppointments() {
       try {
-        const response = await fetch("http://localhost:3001/api/auth/appointments", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error("Não foi possível carregar os agendamentos.");
-        setAppointments(await response.json());
+        setAppointments(
+          await apiGet<Appointment[]>(
+            "/api/auth/appointments",
+            "Não foi possível carregar os agendamentos.",
+            token,
+          ),
+        );
       } catch (requestError) {
         setError(
           requestError instanceof Error ? requestError.message : "Erro ao carregar agendamentos.",
@@ -119,14 +89,13 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
       }
 
       try {
-        const response = await fetch(
-          `http://localhost:3001/api/auth/appointments/availability?date=${bookingDate}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+        setBookingSlots(
+          await apiGet<BookingSlot[]>(
+            `/api/auth/appointments/availability?date=${bookingDate}`,
+            "Não foi possível carregar as vagas.",
+            token,
+          ),
         );
-        if (!response.ok) throw new Error("Não foi possível carregar as vagas.");
-        setBookingSlots(await response.json());
       } catch (requestError) {
         setError(requestError instanceof Error ? requestError.message : "Erro ao carregar vagas.");
       }
@@ -146,16 +115,13 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
 
     try {
       const isEditing = editingPetId !== null;
-      const response = await fetch(
-        `http://localhost:3001/api/auth/pets${isEditing ? `/${editingPetId}` : ""}`,
-        {
-          method: isEditing ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ ...pet, age: Number(pet.age), weight: Number(pet.weight) }),
-        },
+      const data = await apiSend<Pet>(
+        isEditing ? "PUT" : "POST",
+        `/api/auth/pets${isEditing ? `/${editingPetId}` : ""}`,
+        { ...pet, age: Number(pet.age), weight: Number(pet.weight) },
+        "Não foi possível salvar o pet.",
+        token,
       );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Não foi possível salvar o pet.");
       setPets((current) => {
         const updated = isEditing
           ? current.map((item) => (item.id === data.id ? data : item))
@@ -188,14 +154,13 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
     setError("");
 
     try {
-      const response = await fetch(`http://localhost:3001/api/auth/pets/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Não foi possível excluir o pet.");
-      }
+      await apiSend<null>(
+        "DELETE",
+        `/api/auth/pets/${id}`,
+        undefined,
+        "Não foi possível excluir o pet.",
+        token,
+      );
       setPets((current) => current.filter((item) => item.id !== id));
       if (editingPetId === id) {
         setEditingPetId(null);
@@ -213,18 +178,23 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
     setBookingLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
+      const data = await apiSend<{
+        id: number;
+        date: string;
+        slotStart: string;
+        service: string;
+      }>(
+        "POST",
+        "/api/auth/appointments",
+        {
           petId: Number(selectedPetId),
           date: bookingDate,
           slotStart: selectedSlot,
           services: selectedServices,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Não foi possível reservar este horário.");
+        },
+        "Não foi possível reservar este horário.",
+        token,
+      );
       const selectedPet = pets.find((item) => item.id === Number(selectedPetId));
       if (selectedPet) {
         setAppointments((current) =>
@@ -247,13 +217,12 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
       setSelectedSlot("");
       setSelectedServices([]);
       setServiceModalOpen(false);
-      const availabilityResponse = await fetch(
-        `http://localhost:3001/api/auth/appointments/availability?date=${bookingDate}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      if (availabilityResponse.ok) setBookingSlots(await availabilityResponse.json());
+      const refreshedSlots = await apiGet<BookingSlot[]>(
+        `/api/auth/appointments/availability?date=${bookingDate}`,
+        "Não foi possível carregar as vagas.",
+        token,
+      ).catch(() => null);
+      if (refreshedSlots) setBookingSlots(refreshedSlots);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Erro ao reservar horário.");
     } finally {
@@ -280,22 +249,20 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
     setError("");
 
     try {
-      const response = await fetch(`http://localhost:3001/api/auth/appointments/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Não foi possível excluir o agendamento.");
-      }
-      setAppointments((current) => current.filter((item) => item.id !== id));
-      const availabilityResponse = await fetch(
-        `http://localhost:3001/api/auth/appointments/availability?date=${bookingDate}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+      await apiSend<null>(
+        "DELETE",
+        `/api/auth/appointments/${id}`,
+        undefined,
+        "Não foi possível excluir o agendamento.",
+        token,
       );
-      if (availabilityResponse.ok) setBookingSlots(await availabilityResponse.json());
+      setAppointments((current) => current.filter((item) => item.id !== id));
+      const refreshedSlots = await apiGet<BookingSlot[]>(
+        `/api/auth/appointments/availability?date=${bookingDate}`,
+        "Não foi possível carregar as vagas.",
+        token,
+      ).catch(() => null);
+      if (refreshedSlots) setBookingSlots(refreshedSlots);
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : "Erro ao excluir agendamento.",
@@ -323,16 +290,13 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
     setError("");
     setBookingLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/auth/appointments/${editingAppointmentId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ services: selectedServices }),
-        },
+      const data = await apiSend<{ service: string }>(
+        "PUT",
+        `/api/auth/appointments/${editingAppointmentId}`,
+        { services: selectedServices },
+        "Não foi possível editar o agendamento.",
+        token,
       );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Não foi possível editar o agendamento.");
       setAppointments((current) =>
         current.map((item) =>
           item.id === editingAppointmentId ? { ...item, service: data.service } : item,
@@ -493,7 +457,7 @@ export default function MinhaArea({ name, token, onSchedule, onLogout }: MinhaAr
               <input
                 type="date"
                 value={bookingDate}
-                min={getNextWeekday()}
+                min={nextWeekdayISO()}
                 onChange={(event) => {
                   setBookingDate(event.target.value);
                   setSelectedSlot("");

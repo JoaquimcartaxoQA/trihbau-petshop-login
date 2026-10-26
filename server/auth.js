@@ -1,10 +1,22 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { existsSync } from 'node:fs';
 import db from './db.js';
+import { toLocalISO } from './dates.js';
+
+if (existsSync('.env')) process.loadEnvFile('.env');
+
+function resolveJwtSecret() {
+    if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('JWT_SECRET não definido. Configure a variável de ambiente antes de iniciar em produção.');
+    }
+    return 'chave-de-desenvolvimento-local-troque-em-producao';
+}
 
 const router = express.Router();
-const JWT_SECRET = 'chave-secreta-de-estudo-troque-depois';
+const JWT_SECRET = resolveJwtSecret();
 const BOOKING_SLOTS = [
     { start: '08:00', capacity: 4 },
     { start: '09:30', capacity: 4 },
@@ -30,8 +42,7 @@ function isWeekday(date) {
 }
 
 function isPastDate(date) {
-    const today = new Date().toISOString().slice(0, 10);
-    return date < today;
+    return date < toLocalISO();
 }
 
 function getSlot(date, start) {
@@ -158,7 +169,14 @@ router.delete('/pets/:id', authenticate, (req, res) => {
     const petId = Number(req.params.id);
     if (!Number.isInteger(petId)) return res.status(400).json({ error: 'ID de pet inválido.' });
 
-    const result = db.prepare('DELETE FROM pets WHERE id = ? AND tutor_id = ?').run(petId, req.tutorId);
+    const result = db.transaction(() => {
+        const owned = db.prepare('SELECT id FROM pets WHERE id = ? AND tutor_id = ?').get(petId, req.tutorId);
+        if (!owned) return { changes: 0 };
+
+        // appointments.pet_id tem foreign key ativa: os agendamentos saem antes do pet.
+        db.prepare('DELETE FROM appointments WHERE pet_id = ?').run(petId);
+        return db.prepare('DELETE FROM pets WHERE id = ? AND tutor_id = ?').run(petId, req.tutorId);
+    })();
     if (result.changes === 0) return res.status(404).json({ error: 'Pet não encontrado.' });
 
     res.sendStatus(204);

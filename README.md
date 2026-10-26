@@ -59,6 +59,19 @@ API disponível em `http://localhost:3001`.
 
 O backend cria o banco SQLite `trihbau.db` na raiz do projeto quando necessário. Esse arquivo é ignorado pelo Git.
 
+### Variáveis de ambiente
+
+Copie `.env.example` para `.env` e defina o segredo usado nos tokens JWT:
+
+```bash
+cp .env.example .env
+```
+
+- `JWT_SECRET` — obrigatório em produção (a API falha ao iniciar sem ele); em desenvolvimento há um fallback local fixo.
+- `VITE_API_URL` — URL base da API usada pelo frontend (padrão `http://localhost:3001`).
+
+O `.env` é ignorado pelo Git. Nunca comite segredos reais.
+
 ### Redefinir senha para testes manuais
 
 Para acessar manualmente um usuário de desenvolvimento, redefina a senha informando o ID e uma nova senha:
@@ -80,7 +93,7 @@ Com o backend em execução, acesse:
 
 ### Produtos
 
-A primeira fase da loja está disponível em `http://localhost:5173/produtos` e lista os quatro produtos iniciais. O catálogo público pode ser consultado pela API:
+A primeira fase da loja está disponível em `http://localhost:5173/produtos` e lista os quatro produtos iniciais. O botão **Comprar** abre o WhatsApp com o nome e o preço do produto. O catálogo público pode ser consultado pela API:
 
 ```http
 GET /api/products
@@ -318,8 +331,13 @@ npm run build
 ```text
 src/                    Frontend React
 src/components/         Telas de login, cadastro e área do tutor
+src/components/site/    Seções da landing page (header, hero, serviços etc.)
+src/hooks/              useAuth (sessão/telas) e useSiteRoute (rota interna)
+src/services/           Camada central de acesso à API (URL base + JWT)
+src/utils/              Helpers de data, mensagens de WhatsApp e cn
 server/                 API Express, autenticação e banco SQLite
 pages/                  Page Objects dos testes Playwright
+
 tests/                  Testes E2E
 fixtures/               Fixtures dos testes Playwright
 data/                   Dados auxiliares dos testes

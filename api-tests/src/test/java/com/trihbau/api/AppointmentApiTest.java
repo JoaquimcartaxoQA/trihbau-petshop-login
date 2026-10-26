@@ -110,6 +110,40 @@ class AppointmentApiTest {
     }
 
     @Test
+    void shouldReleaseSlotWhenPetIsDeleted() {
+        Map<String, String> availableBooking = findAvailableBooking();
+        String bookingDate = availableBooking.get("date");
+        String slotStart = availableBooking.get("slot");
+        int availableBefore = availableSlots(bookingDate, slotStart);
+
+        appointmentId = given()
+            .auth().oauth2(token)
+            .contentType(ContentType.JSON)
+            .body(Map.of(
+                "petId", petId,
+                "date", bookingDate,
+                "slotStart", slotStart,
+                "services", List.of("Banho")
+            ))
+        .when()
+            .post("/api/auth/appointments")
+        .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given().auth().oauth2(token).when().delete("/api/auth/pets/{id}", petId)
+            .then().statusCode(204);
+        petId = 0;
+        appointmentId = 0;
+
+        given().auth().oauth2(token)
+            .when().get("/api/auth/appointments/availability?date={date}", bookingDate)
+            .then()
+            .statusCode(200)
+            .body(String.format("find { it.start == '%s' }.available", slotStart), equalTo(availableBefore));
+    }
+
+    @Test
     void shouldRejectIncompatibleTosaServices() {
         Map<String, String> availableBooking = findAvailableBooking();
 
@@ -134,6 +168,13 @@ class AppointmentApiTest {
             date = date.plusDays(1);
         }
         return date;
+    }
+
+    private int availableSlots(String date, String slotStart) {
+        return given().auth().oauth2(token)
+            .when().get("/api/auth/appointments/availability?date={date}", date)
+            .then().statusCode(200)
+            .extract().path(String.format("find { it.start == '%s' }.available", slotStart));
     }
 
     private Map<String, String> findAvailableBooking() {
