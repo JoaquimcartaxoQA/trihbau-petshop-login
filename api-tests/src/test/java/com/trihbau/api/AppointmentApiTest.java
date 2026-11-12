@@ -162,6 +162,77 @@ class AppointmentApiTest {
             .statusCode(400);
     }
 
+    @Test
+    void rejectsFebruaryOverflowThatWouldNormalizeToAWeekday() {
+        int year = LocalDate.now().getYear() + 1;
+        while (LocalDate.of(year, 2, 1).plusDays(29).getDayOfWeek().getValue() > 5) year++;
+        given().auth().oauth2(token).contentType(ContentType.JSON)
+            .body(Map.of("petId", petId, "date", year + "-02-30", "slotStart", "08:00",
+                         "services", List.of("Banho")))
+            .when().post("/api/auth/appointments").then().statusCode(400);
+    }
+
+    @Test
+    void capacityConflictDoesNotOverbookAndCancellationRestoresTheSlot() {
+        String date = nextWeekday().plusWeeks(2).toString();
+        for (int i = 0; i < 2; i++) {
+            appointmentId = given().auth().oauth2(token).contentType(ContentType.JSON)
+                .body(Map.of("petId", petId, "date", date, "slotStart", "18:00", "services", List.of("Banho")))
+                .when().post("/api/auth/appointments").then().statusCode(201).extract().path("id");
+        }
+        given().auth().oauth2(token).contentType(ContentType.JSON)
+            .body(Map.of("petId", petId, "date", date, "slotStart", "18:00", "services", List.of("Banho")))
+            .when().post("/api/auth/appointments").then().statusCode(409);
+        org.junit.jupiter.api.Assertions.assertEquals(0, availableSlots(date, "18:00"));
+        given().auth().oauth2(token).delete("/api/auth/appointments/{id}", appointmentId).then().statusCode(204);
+        org.junit.jupiter.api.Assertions.assertEquals(1, availableSlots(date, "18:00"));
+    }
+
+    @Test
+    void anotherTutorCannotEditOrDeletePetsOrAppointments() {
+        var booking = findAvailableBooking();
+        appointmentId = given().auth().oauth2(token).contentType(ContentType.JSON)
+            .body(Map.of("petId", petId, "date", booking.get("date"), "slotStart", booking.get("slot"), "services", List.of("Banho")))
+            .when().post("/api/auth/appointments").then().statusCode(201).extract().path("id");
+        String outsider = given().contentType(ContentType.JSON)
+            .body(Map.of("name", "Other synthetic tutor", "email", UUID.randomUUID() + "@example.test", "password", PASSWORD))
+            .when().post("/api/auth/register").then().statusCode(200).extract().path("token");
+        var pet = Map.of("breed", "Beagle", "name", "Changed", "age", 5, "weight", 12, "contactPhone", "85999999999");
+        given().auth().oauth2(outsider).contentType(ContentType.JSON).body(pet)
+            .put("/api/auth/pets/{id}", petId).then().statusCode(404);
+        given().auth().oauth2(outsider).delete("/api/auth/pets/{id}", petId).then().statusCode(404);
+        given().auth().oauth2(outsider).contentType(ContentType.JSON).body(Map.of("services", List.of("Banho")))
+            .put("/api/auth/appointments/{id}", appointmentId).then().statusCode(404);
+        given().auth().oauth2(outsider).delete("/api/auth/appointments/{id}", appointmentId).then().statusCode(404);
+        given().auth().oauth2(token).contentType(ContentType.JSON).body(pet)
+            .put("/api/auth/pets/{id}", petId).then().statusCode(200).body("name", equalTo("Changed"));
+        given().auth().oauth2(token).contentType(ContentType.JSON).body(Map.of("services", List.of("Corte de unhas")))
+            .put("/api/auth/appointments/{id}", appointmentId).then().statusCode(200).body("service", equalTo("Corte de unhas"));
+    }
+
+    @Test
+    void rejectsMalformedIdentifiersAndInvalidBookingInputs() {
+        String date = nextWeekday().toString();
+        for (var input : List.of(
+                Map.of("petId", "invalid", "date", date, "slotStart", "08:00", "services", List.of("Banho")),
+                Map.of("petId", petId, "date", "bad", "slotStart", "08:00", "services", List.of("Banho")),
+                Map.of("petId", petId, "date", date, "slotStart", "04:00", "services", List.of("Banho")),
+                Map.of("petId", petId, "date", "2000-01-03", "slotStart", "08:00", "services", List.of("Banho")),
+                Map.of("petId", petId, "date", date, "slotStart", "08:00", "services", List.of()),
+                Map.of("petId", petId, "date", date, "slotStart", "08:00", "services", List.of("Unknown")))) {
+            given().auth().oauth2(token).contentType(ContentType.JSON).body(input)
+                .post("/api/auth/appointments").then().statusCode(400);
+        }
+        for (String path : List.of("/api/auth/pets/invalid", "/api/auth/appointments/invalid")) {
+            given().auth().oauth2(token).delete(path).then().statusCode(400);
+        }
+        given().auth().oauth2(token).get("/api/auth/appointments/availability").then().statusCode(400);
+        given().auth().oauth2(token).queryParam("date", "2000-01-01").get("/api/auth/appointments/availability").then().statusCode(400);
+        given().auth().oauth2(token).queryParam("date", "2000-01-03").get("/api/auth/appointments/availability").then().statusCode(400);
+        given().auth().oauth2(token).contentType(ContentType.JSON).body(Map.of("services", List.of()))
+            .put("/api/auth/appointments/1").then().statusCode(400);
+    }
+
     private static LocalDate nextWeekday() {
         LocalDate date = LocalDate.now().plusDays(1);
         while (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {

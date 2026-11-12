@@ -12,6 +12,11 @@ import static org.hamcrest.Matchers.equalTo;
 
 
 class InvalidLoginTest {
+    @Test
+    void anonymousRequestsCannotListTutors() {
+        given().when().get("/api/auth/users").then().statusCode(401);
+    }
+
     @BeforeEach 
     void setUp() {
         RestAssured.baseURI = System.getProperty("baseUrl", "http://localhost:3001");

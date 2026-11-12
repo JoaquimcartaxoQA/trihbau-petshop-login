@@ -37,8 +37,16 @@ const BOOKING_SERVICES = [
 ];
 
 function isWeekday(date) {
+    if (!isValidCalendarDate(date)) return false;
     const day = new Date(`${date}T12:00:00`).getDay();
     return day >= 1 && day <= 5;
+}
+
+function isValidCalendarDate(date) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+    const parsed = new Date(`${date}T12:00:00`);
+    return Number.isFinite(parsed.getTime()) && parsed.getFullYear() === Number(date.slice(0, 4)) &&
+        parsed.getMonth() === Number(date.slice(5, 7)) - 1 && parsed.getDate() === Number(date.slice(8, 10));
 }
 
 function isPastDate(date) {
@@ -62,7 +70,7 @@ function authenticate(req, res, next) {
     }
 }
 
-router.get('/users', (req, res) => {
+router.get('/users', authenticate, (req, res) => {
     const search = String(req.query.search ?? '').trim();
     const users = db.prepare(`
         SELECT id, name, email
