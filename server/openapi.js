@@ -80,6 +80,7 @@ const openapi = {
       get: {
         tags: ["Auth"],
         summary: "Lista tutores cadastrados",
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: "search",
@@ -101,6 +102,7 @@ const openapi = {
               },
             },
           },
+          401: { description: "Token inválido ou ausente" },
         },
       },
     },

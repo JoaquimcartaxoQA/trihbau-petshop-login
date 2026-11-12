@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-const db = new Database('trihbau.db');
+const db = new Database(process.env.TRIHBAU_DB_PATH ?? 'trihbau.db');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS tutors (
