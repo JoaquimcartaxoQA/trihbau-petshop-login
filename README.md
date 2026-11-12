@@ -244,6 +244,10 @@ POST /api/auth/appointments
 
 O cadastro exige `petId`, `date`, `slotStart` e ao menos um serviço em `services`, além do token JWT do tutor. Os serviços disponíveis são `Banho`, `Tosa completa`, `Tosa higiênica`, `Limpeza de ouvidos`, `Corte de unhas` e `Hidratação premium`. `Tosa completa` e `Tosa higiênica` não podem ser selecionadas juntas.
 
+## Abordagem de QA
+
+Os testes cobrem a jornada de cadastro e agendamento, a capacidade de reservas e o isolamento entre tutores. Playwright exercita os fluxos no navegador, REST Assured verifica regras e erros da API, e Vitest cobre comportamentos de componentes e lógica. Os casos são acompanhados por matrizes de riscos e cenários. [Suítes e cobertura no PR #1](https://github.com/JoaquimcartaxoQA/trihbau-petshop-login/pull/1)
+
 ## Testes
 
 Testes unitários:
